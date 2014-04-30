@@ -35,10 +35,10 @@ class TreeSearchSystem(Component):
         for treesearchviewer in self.treesearchviewers:
             d = treesearchviewer.get_templates()
             if filename in d:
-                stream = self._enable_treesearch_for_page(req, method, filename, stream, data, d[filename])
+                stream = self._enable_treesearch_for_page(req, stream, d[filename])
         return stream
         
-    def _enable_treesearch_for_page(self, req, method, filename, stream, data, fields):
+    def _enable_treesearch_for_page(self, req, stream, fields):
         project_name = req.environ.get('SCRIPT_NAME')
 
         add_script(req, 'treesearch/js/treesearch.js')
