@@ -51,9 +51,8 @@
 
       this.exceeds = false;
       this.error = false;
-      this.errormsg_exceeds = 'Search key exceeds the node value';
-      this.errormsg_start = 'Search key should starts with /';
-      this.errormsg_invalid = 'Search key does not match with elements in the path';
+      this.errormsg_exceeds = 'Path exceeds the limit';
+      this.errormsg_invalid = 'No results found';
 
       this.events();
     },
@@ -78,6 +77,7 @@
       });
       
       this.$tree.on("mouseleave", ".level",function(){
+      	_this.pointer = '';
         $(this).removeClass('level-hover');
       });
 
@@ -114,6 +114,7 @@
       else {
         this.$elem.val($node.data('ABS_PATH'));
       }
+      
     },
 
     /**
@@ -160,16 +161,6 @@
           this.$tree.addClass('hidden');
         }
 
-        // Check if the input data starts with /
-        else if(!val.match('^/')) {
-          this.display_error(this.errormsg_start);
-        }
-
-        // call BACKSPACE key handler
-        else if(e.which == 8) {
-          this.tree_backtrack(val);
-        }
-
         // call FORWARD SLASH key handler
         else if(e.which == 191) {
           this.tree_lookahead(val);
@@ -182,7 +173,7 @@
 
         // call REST OF KEY handler
         else{
-          this.tree_traverse(val);
+          this.tree_backtrack(val);
         }
       }
 
@@ -196,6 +187,10 @@
      * Based on the response, tree is builted.
      */
     tree_lookahead: function(val) {
+      if(!val.match('^/')) {
+        val = '/' + val;
+      }
+
       $nodes = this.process_data(val);
 
       if($nodes.length) {
@@ -236,16 +231,15 @@
         current_val = '/' + loopback_data + '/';
       }
 
-      repoData = repo_index(this.args.REPO_URL, current_val);
+      repoData = this.process_data(current_val);
 
       if($.isEmptyObject(repoData)) {
         this.display_error(this.errormsg_invalid);
       }
 
       else {
-        $nodes = this.build_HTML(repoData);
         this.remove_error();
-        this.$tree.html($nodes);
+        this.$tree.html(repoData);
       }
 
       if(current_val != val) {
@@ -270,7 +264,7 @@
       this.error = false;
       $nodes.each(function() {
         elm_value = $('div',$(this)).data('ELEM_VALUE');
-        if(elm_value && !elm_value.match('^'+tmp_data)) {
+        if(elm_value && !elm_value.match('^'+tmp_data, 'i')) {
           $(this).addClass('hidden');
         }
       });
@@ -353,8 +347,7 @@
         },
         async:false,
         success: function(response) {
-          ajxResp = response;
-          repo_index(_this.args.REPO_URL, data, ajxResp);
+          ajxResp = repo_index(_this.args.REPO_URL, data, response);
         },
         error: function() {
           ajxResp = '';
@@ -392,7 +385,6 @@
         if(this.$elem.val() != '/'){
           this.$elem.val(data+'/');
         }
-        
       }
 
       // Collapse
@@ -478,15 +470,6 @@
         e.preventDefault();
       }
 
-      /**
-       * This method is to expand/collapse child of the current node
-       * while pressing SIDE ARROW KEYS
-       */
-      else if(e.which == 37 || e.which == 39) {
-        $slideNode = $('.icon-caret-right,.icon-caret-down',this.pointer).first();
-        this.slider($slideNode);
-      }
-
       // Function call for TAB keypress
       else if(e.which == 9) {
         preventDefault = this.autocomplete_text($nodes);
@@ -525,7 +508,9 @@
         this.arrIndex = 0;
       }
       this.pointer = $liNodes.eq(this.arrIndex);
+      
       this.hover_element($('> div',this.pointer),true);
+      this.scroller(this.pointer);
     },
 
     /**
@@ -539,6 +524,7 @@
         }
         this.pointer = $liNodes.eq(this.arrIndex);
         this.hover_element($('> div',this.pointer),true);
+        this.scroller(this.pointer);
     },
     
     /**
@@ -566,9 +552,16 @@
       }
       return preventDefault;
     },
+
   });
 
   var repos={};
+  
+  function sort_by_name(x, y){
+    var x_name = x.path.toLowerCase();
+    var y_name = y.path.toLowerCase(); 
+    return ((x_name < y_name) ? -1 : ((x_name > y_name) ? 1 : 0));
+  }
 
   /**
    * This method will create an repo dictionary object contains
@@ -576,12 +569,21 @@
    * repos = {'d4':{'/':'trunk}} 
    */
   function repo_index(repoUrl, key, val) {
+    var array_dir,
+        array_file;
+
     if(!repos[repoUrl]) {
       repos[repoUrl] = {};
     }
 
     if(val) {
-      repos[repoUrl][key] = val;
+      array_dir = val.filter(function(x){ if (x.isdir == true) { return x; }});
+      array_file = val.filter(function(x){ if (x.isdir == false) { return x; }});
+      array_dir.sort(sort_by_name);
+      array_file.sort(sort_by_name);
+      $.merge(array_dir,array_file);
+      
+      repos[repoUrl][key] = array_dir;
     }
 
     return repos[repoUrl][key] || '';
