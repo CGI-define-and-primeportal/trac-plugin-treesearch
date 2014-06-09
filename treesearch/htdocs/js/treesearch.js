@@ -11,7 +11,7 @@
 
     return this.each(function() {
       options = $.extend({}, $.fn.tree.defaults, options);
-      new treeSearch($(this),options);
+      new treeSearch($(this), options);
     });
   };
 
@@ -40,19 +40,19 @@
         'class': 'tree-container hidden'
       });
       
-      this.$wrapper = $('<div>').attr('class','tree-wrapper');
+      this.$wrapper = $('<div>').attr('class', 'tree-wrapper');
       this.$elem.after(this.$wrapper);
       this.$wrapper.append(this.$elem, this.$tree);
 
       this.pointer = '';
       this.arrIndex = -1;
-      this.prev_key = '';
+      this.prevKey = '';
       this.sliderOpen = false;
 
       this.exceeds = false;
       this.error = false;
-      this.errormsg_exceeds = 'Path exceeds the limit';
-      this.errormsg_invalid = 'No results found';
+      this.errormsgExceeds = 'Path exceeds the limit';
+      this.errormsgInvalid = 'No results found';
 
       this.events();
     },
@@ -77,7 +77,7 @@
       });
       
       this.$tree.on("mouseleave", ".level",function(){
-      	_this.pointer = '';
+        _this.pointer = '';
         $(this).removeClass('level-hover');
       });
 
@@ -137,7 +137,7 @@
       this.error = true;
 
       if(this.exceeds) {
-        error_type = this.errormsg_exceeds;
+        error_type = this.errormsgExceeds;
       }
       this.$tree.text(error_type).addClass('tree-error');
     },
@@ -202,7 +202,7 @@
         if($.isArray($nodes)) {
           this.exceeds = true;
           }
-        this.display_error(this.errormsg_invalid);
+        this.display_error(this.errormsgInvalid);
       }
     },
 
@@ -234,7 +234,7 @@
       repoData = this.process_data(current_val);
 
       if($.isEmptyObject(repoData)) {
-        this.display_error(this.errormsg_invalid);
+        this.display_error(this.errormsgInvalid);
       }
 
       else {
@@ -271,7 +271,7 @@
 
       if($('li:visible',this.$tree).length == 0) {
         this.exceeds = false;
-        this.display_error(this.errormsg_invalid);
+        this.display_error(this.errormsgInvalid);
       }
     },
 
@@ -306,9 +306,12 @@
         var pathData = _this.clean_data(value.path.split('/')),
             elmValue = pathData.pop() || '/',
             $node = $("<div>").addClass('level'),
-            $span = $("<span class='txt-data'></span>").text(elmValue).appendTo($node),
-            $icon = $("<i class='spacy'></i>").prependTo($span);
-        
+            $span = $("<span class='txt-data'></span>"),
+            $icon = $("<i class='spacy'></i>");
+
+        $span.text(elmValue).appendTo($node);
+        $icon.prependTo($span);
+
         $node.data({
             ABS_PATH:value.path,
             ELEM_VALUE:elmValue
@@ -430,13 +433,12 @@
       var $nodes = $(" > li:not(.hidden)",this.$tree),
           slideflag = false,
           preventDefault,
-          $slideNode,
           $child_nodes;
 
       // ignore key up for SHIFT+TAB
-      if(this.prev_key == 16 && e.which == 9){
+      if(this.prevKey == 16 && e.which == 9){
         this.ignoreKeyUp = false;
-        this.prev_key = e.which;
+        this.prevKey = e.which;
         return;
       }
 
@@ -493,7 +495,7 @@
         preventDefault = false;
         this.ignoreKeyUp = false;
       }
-      this.prev_key = e.which;
+      this.prevKey = e.which;
     },
 
     /**
@@ -557,10 +559,19 @@
 
   var repos={};
   
-  function sort_by_name(x, y){
-    var x_name = x.path.toLowerCase();
-    var y_name = y.path.toLowerCase(); 
-    return ((x_name < y_name) ? -1 : ((x_name > y_name) ? 1 : 0));
+  function sort_by_name(data1, data2){
+    var xName = data1.path.toLowerCase(),
+        yName = data2.path.toLowerCase();
+
+    if(xName < yName) {
+      return -1;
+    }
+    else if(xName > yName) {
+      return 1;
+    }
+    else {
+      return 0;
+    }
   }
 
   /**
@@ -569,21 +580,19 @@
    * repos = {'d4':{'/':'trunk}} 
    */
   function repo_index(repoUrl, key, val) {
-    var array_dir,
-        array_file;
+    var dirData,
+        fileData;
 
     if(!repos[repoUrl]) {
       repos[repoUrl] = {};
     }
 
     if(val) {
-      array_dir = val.filter(function(x){ if (x.isdir == true) { return x; }});
-      array_file = val.filter(function(x){ if (x.isdir == false) { return x; }});
-      array_dir.sort(sort_by_name);
-      array_file.sort(sort_by_name);
-      $.merge(array_dir,array_file);
-      
-      repos[repoUrl][key] = array_dir;
+      dirData = val.filter(function(x){ return x.isdir; }).sort(sort_by_name);
+      fileData = val.filter(function(x){ return !x.isdir; }).sort(sort_by_name);
+
+      $.merge(dirData,fileData);
+      repos[repoUrl][key] = dirData;
     }
 
     return repos[repoUrl][key] || '';
