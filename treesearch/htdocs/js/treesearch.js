@@ -51,7 +51,7 @@
 
       this.exceeds = false;
       this.error = false;
-      this.errormsgExceeds = 'Path exceeds the limit';
+      this.errormsgExceeds = 'This folder is empty';
       this.errormsgInvalid = 'No results found';
 
       this.events();
