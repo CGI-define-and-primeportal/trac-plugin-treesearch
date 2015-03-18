@@ -66,7 +66,7 @@
       this.$elem.on("keydown", $.proxy(this.key_down, this));
       this.$elem.on("keyup", $.proxy(this.key_up, this));
 
-      this.$tree.on("mousedown", ".icon-caret-right, .icon-caret-down",function(e) {
+      this.$tree.on("mousedown", ".fa-caret-right, .fa-caret-down",function(e) {
         e.stopPropagation();
         e.preventDefault();
         _this.slider($(this));
@@ -318,12 +318,12 @@
             });
 
         if(value.isdir) {
-          $node.prepend("<span class='icon-caret-right'></span>");
-          $icon.addClass("icon-folder-close-alt");
+          $node.prepend("<span class='fa fa-caret-right'></span>");
+          $icon.addClass("fa fa-folder-o");
         }
 
         else {
-          $icon.addClass("icon-file-alt");
+          $icon.addClass("fa fa-file-alt");
         }
 
         $node = $('<li>').append($node);
@@ -372,8 +372,8 @@
           $ul = $('<ul>');
 
       // Expand
-      if($node.hasClass('icon-caret-right')) {
-        $node.removeClass('icon-caret-right').addClass('icon-caret-down');
+      if($node.hasClass('fa-caret-right')) {
+        $node.removeClass('fa fa-caret-right').addClass('fa fa-caret-down');
 
         if($child.length > 0) {
           $('>li',$child).removeClass('hidden');
@@ -393,7 +393,7 @@
       // Collapse
       else {
         this.$elem.val(data);
-        $node.removeClass('icon-caret-down').addClass('icon-caret-right');
+        $node.removeClass('fa fa-caret-down').addClass('fa fa-caret-right');
         $('> li',$child).addClass('hidden');
       }
     },

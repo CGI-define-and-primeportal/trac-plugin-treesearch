@@ -27,8 +27,8 @@
   margin-left: 0;
 }
  
-.tree-container .icon-caret-right,
-.tree-container .icon-caret-down {
+.tree-container .fa-caret-right,
+.tree-container .fa-caret-down {
   cursor:pointer;
   padding: 0 5px;
 }
