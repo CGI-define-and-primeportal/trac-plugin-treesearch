@@ -1,6 +1,6 @@
 from pkg_resources import resource_filename
-from trac.core import Component, implements, TracError
-from trac.web.api import IRequestFilter, ITemplateStreamFilter
+from trac.core import Component, implements
+from trac.web.api import ITemplateStreamFilter
 from trac.web.chrome import (ITemplateProvider, add_script, add_script_data,
                              add_stylesheet)
 from trac.core import ExtensionPoint
